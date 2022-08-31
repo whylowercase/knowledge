@@ -40,7 +40,7 @@
 ## 如何判断对象可以被回收
 
 - 引用计数法：每个对象都有一个引用计数属性，新增一个引用时计数加1，引用释放时计数减1，当计数为0时可以被回收。（Java中不采用这个方法）
-- 可达性分析法：从GC Roots开始向下搜索，所走过的路径被称为引用链。当一个对象到GC Roots灭有任何引用链相连时，则证明此对象是不可用的，那么就可以进行GC（Java中采用这个方法）
+- 可达性分析法：从GC Roots开始向下搜索，所走过的路径被称为引用链。当一个对象到GC Roots没有任何引用链相连时，则证明此对象是不可用的，那么就可以进行GC（Java中采用这个方法）
 
 ## 最终的死亡
 
@@ -97,4 +97,63 @@ jstat -<option> [-t] [-h<lines>] <vmid> [<interval> [<count>]]
 ## jstack：java堆栈跟踪工具
 
 ## 可视化故障处理工具：JConsole
+
+
+
+# 类文件结构
+
+## Class文件结构
+
+```java
+ClassFile {
+    u4             magic; //Class 文件的标志
+    u2             minor_version;//Class 的小版本号
+    u2             major_version;//Class 的大版本号
+    u2             constant_pool_count;//常量池的数量
+    cp_info        constant_pool[constant_pool_count-1];//常量池
+    u2             access_flags;//Class 的访问标记
+    u2             this_class;//当前类
+    u2             super_class;//父类
+    u2             interfaces_count;//接口
+    u2             interfaces[interfaces_count];//一个类可以实现多个接口
+    u2             fields_count;//Class 文件的字段属性
+    field_info     fields[fields_count];//一个类可以有多个字段
+    u2             methods_count;//Class 文件的方法数量
+    method_info    methods[methods_count];//一个类可以有个多个方法
+    u2             attributes_count;//此类的属性表中的属性数
+    attribute_info attributes[attributes_count];//属性表集合
+}
+```
+
+### 魔数
+
+每个Class文件的头4个字节称为魔数，唯一作用是确定这个文件是否能被虚拟机接收
+
+### 版本号
+
+第5和第六是次版本号，第7和第8是主版本号
+
+### 常量池
+
+主次版本号之后的是常量池，常量池的数量是 `constant_pool_count-1`（**常量池计数器是从 1 开始计数的，将第 0 项常量空出来是有特殊考虑的，索引值为 0 代表“不引用任何一个常量池项”**）。
+
+常量池主要存放两大常量：字面量和符号引用。字面量比较接近于 Java 语言层面的的常量概念，如文本字符串、声明为 final 的常量值等。而符号引用则属于编译原理方面的概念。包括下面三类常量：
+
+- 类和接口的全限定名
+- 字段的名称和描述符
+- 方法的名称和描述符
+
+### 访问标志
+在常量池结束之后，紧接着的两个字节代表访问标志，这个标志用于识别一些类或者接口层次的访问信息，包括：这个 Class 是类还是接口，是否为 public 或者 abstract 类型，如果是类的话是否声明为 final 等等
+
+### 当前类（This Class）、父类（Super Class）、接口（Interfaces）索引集合
+类索引用于确定这个类的全限定名，父类索引用于确定这个类的父类的全限定名，由于 Java 语言的单继承，所以父类索引只有一个，除了 java.lang.Object 之外，所有的 java 类都有父类，因此除了 java.lang.Object 外，所有 Java 类的父类索引都不为 0。
+
+### 字段表集合（Fields)
+
+### 方法表集合（Methods）
+
+### 属性表集合（Attributes）
+
+# 类加载过程
 
